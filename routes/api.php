@@ -2,8 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TttController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
+
 
 
 /*
@@ -27,11 +29,23 @@ use App\Http\Controllers\TttController;
 
 
 Route::group([
-    // 'middleware' => 'api',
-    'prefix' => 'user'
+    'middleware' => 'api',
+    'prefix' => 'admin'
 ], function ($router) {
     Route::post('login', [AuthController::class,'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 });
+
+
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'category'
+], function ($router) {
+    Route::get('all', [CategoryController::class,'all']);
+    Route::get('one/{id}', [CategoryController::class,'one']);
+    Route::post('create', [CategoryController::class,'create']);
+});
+

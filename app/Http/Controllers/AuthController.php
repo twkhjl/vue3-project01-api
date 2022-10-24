@@ -36,24 +36,35 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // return $this->respondWithToken($token);
         $user = Auth::user();
 
-        return response()->json($user->makeHidden([
-            "email_verified_at",
-            "created_at",
-            "updated_at"]))
-            ->withCookie(
-                'jwt', //$name
-                $token, //$value
-                36000,  //$minutes
-                null,  //$path
-                null,  //$domain
-                true,  //$secure
-                true,  //$httpOnly
-                false, //$raw
-                'none'  //$sameSite
-            );
+        return response()->json([
+            'token'=>$token,
+            'expires_in' => auth()->factory()->getTTL() * 60,
+
+            'user'=>$user->makeHidden([
+                "email_verified_at",
+                "created_at",
+                "updated_at"])
+        ]);
+
+        ;
+
+        // return response()->json($user->makeHidden([
+        //     "email_verified_at",
+        //     "created_at",
+        //     "updated_at"]))
+        //     ->withCookie(
+        //         'jwt', //$name
+        //         $token, //$value
+        //         36000,  //$minutes
+        //         null,  //$path
+        //         null,  //$domain
+        //         true,  //$secure
+        //         true,  //$httpOnly
+        //         false, //$raw
+        //         'none'  //$sameSite
+        //     );
     }
 
     /**
@@ -65,6 +76,11 @@ class AuthController extends Controller
     {
         return response()->json(auth()->user());
     }
+
+    public function checkToken(){
+        return response()->json([ 'valid' => auth()->check() ]);
+    }
+
 
     /**
      * Log the user out (Invalidate the token).
