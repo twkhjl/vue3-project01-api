@@ -46,6 +46,6 @@ Route::group([
 ], function ($router) {
     Route::get('all', [CategoryController::class,'all']);
     Route::get('one/{id}', [CategoryController::class,'one']);
-    Route::post('create', [CategoryController::class,'create']);
+    Route::post('store', [CategoryController::class,'store']);
 });
 
