@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 class CategoryController extends Controller
@@ -53,7 +55,8 @@ class CategoryController extends Controller
                 // 自定錯誤訊息
                 'name.unique'=>'"'.$request->input('name').'"'.' 已被使用,請改用其他名稱',
                 'required' => ':attribute不可空白',
-                'image' => ':attribute只能上傳圖片檔案',
+                'img.image' => ':attribute只能上傳圖片檔案',
+                'img.max' => ':attribute最大不得超過1MB',
             ], [
                 // 自定欄位在錯誤訊息中的顯示名稱
                 'name' => '分類名稱',
@@ -61,11 +64,11 @@ class CategoryController extends Controller
                 'description' => '分類描述',
             ]);
 
-            if ($validator->fails()) {
+            // if ($validator->fails()) {
 
-                //只想回傳json
-                return response()->json(['errors' => $validator->errors()]);
-            };
+            //     //只想回傳json
+            //     return response()->json(['errors' => $validator->errors()]);
+            // };
 
 
             // 取得表單輸入值
@@ -75,10 +78,21 @@ class CategoryController extends Controller
 
 
             // 處理上傳檔案
-            if ($request->hasFile('img')) {
-                $formField['img'] = $request->file('img')->store('imgs', 'public/imgs/categories/');
-            };
-            $category->create($formField);
+
+            $image_64 = $request->input('img');
+            $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
+
+            $replace = substr($image_64, 0, strpos($image_64, ',')+1);
+
+            // find substring fro replace here eg: data:image/png;base64,
+
+            $image = str_replace($replace, '', $image_64);
+            $image = str_replace(' ', '+', $image);
+            $imageName = Str::random(10).'.'.$extension;
+
+            Storage::disk('public')->put($imageName, base64_decode($image));
+            // $formField['img'] = $request->file('img')->store('imgs', 'public/imgs/categories/');
+            // $category->create($formField);
 
             return response()->json(['result' => 'success']);
         } catch (\Exception $e) {
