@@ -32,6 +32,8 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'admin'
 ], function ($router) {
+    Route::post('test', [AuthController::class,'test']);
+
     Route::post('login', [AuthController::class,'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);

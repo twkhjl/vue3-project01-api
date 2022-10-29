@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions;
 
 use Illuminate\Http\Request;
 
@@ -14,7 +16,12 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        // $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('jwtauth', ['except' => ['login','refresh']]);
+    }
+
+    public function test(){
+        return response()->json(auth()->check());
     }
 
     /**
@@ -77,9 +84,9 @@ class AuthController extends Controller
         return response()->json(auth()->user());
     }
 
-    public function checkToken(){
-        return response()->json([ 'valid' => auth()->check() ]);
-    }
+    // public function checkToken(){
+    //     return response()->json([ 'valid' => auth()->check() ]);
+    // }
 
 
     /**
@@ -101,7 +108,23 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+
+        try {
+            return $this->respondWithToken(auth()->refresh());
+            // JWTAuth::parseToken()->authenticate();
+
+        } catch (\Exception $e) {
+            if($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException &&
+            !$e instanceof \Tymon\JWTAuth\Exceptions\TokenBlacklistedException &&
+            !$e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
+
+                return $this->respondWithToken(auth()->refresh());
+
+            }
+            return response()->json(['error'=>'invalid','message'=>'old token invalid or being blacklisted'],401);
+
+        }
+
     }
 
     /**
