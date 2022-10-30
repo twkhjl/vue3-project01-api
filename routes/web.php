@@ -18,5 +18,3 @@ Route::get('/', function () {
     return response()->json('');
 });
 
-
-Route::get('/test', [TttController::class, 'test']);
