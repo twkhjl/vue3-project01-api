@@ -47,7 +47,7 @@ Route::group([
     'prefix' => 'category'
 ], function ($router) {
     Route::get('all', [CategoryController::class,'all']);
-    Route::get('one/{id}', [CategoryController::class,'one']);
+    Route::get('show/{id}', [CategoryController::class,'show']);
     Route::post('store', [CategoryController::class,'store']);
 });
 
