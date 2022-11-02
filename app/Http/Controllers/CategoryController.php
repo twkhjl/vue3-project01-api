@@ -11,10 +11,14 @@ use Illuminate\Support\Str;
 use App\Rules\base64_image;
 use App\Rules\base64_max;
 use App\Rules\base64_dimension;
-
+use Illuminate\Support\Facades\File as FacadesFile;
+use PhpParser\Node\Stmt\TryCatch;
 
 class CategoryController extends Controller
 {
+
+    public $IMG_FILE_PATH = 'imgs/categories/';
+
     public function __construct()
     {
         // $this->middleware('auth:api', ['except' => ['']]);
@@ -38,7 +42,7 @@ class CategoryController extends Controller
     }
     public function store(Request $request)
     {
-// return response()->json($request);
+        // return response()->json($request);
 
 
         try {
@@ -54,7 +58,7 @@ class CategoryController extends Controller
                 // 'img'=>['image','max:1024','dimensions:max_width=300,max_height=218'],
                 // 'img'=>['image','max:1024','dimensions:width=640,height=915'],
                 // 'img' => ['image', 'max:1024'],
-                'img' => [new base64_image, new base64_max(0.5),new base64_dimension(640,640)],
+                'img' => [new base64_image, new base64_max(0.5), new base64_dimension(640, 640)],
                 // 'img' => [new base64_image, new base64_max(0.5)],
 
 
@@ -86,29 +90,35 @@ class CategoryController extends Controller
             $fillable = collect($category->getFillable())->toArray();
             $formField = $request->only($fillable);
 
+            if( $request->input('img')){
+                // handle base64 image
+                // https://laracasts.com/discuss/channels/laravel/laravel-file-storage-how-to-store-decoded-base64-image
+                $image_64 = $request->input('img');
+                $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
+                $replace = substr($image_64, 0, strpos($image_64, ',') + 1);
+                $image = str_replace($replace, '', $image_64);
+                $image = str_replace(' ', '+', $image);
+                $imageName = Str::random(10) . '.' . $extension;
 
-            // handle base64 image
-            // https://laracasts.com/discuss/channels/laravel/laravel-file-storage-how-to-store-decoded-base64-image
-            $image_64 = $request->input('img');
-            $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
-            $replace = substr($image_64, 0, strpos($image_64, ',') + 1);
-            $image = str_replace($replace, '', $image_64);
-            $image = str_replace(' ', '+', $image);
-            $imageName = Str::random(10) . '.' . $extension;
+                // image ready to be stored
+                $img_store_path = $this->IMG_FILE_PATH;
 
-            // image ready to be stored
-            $img_store_path='/imgs/categories/';
+                Storage::disk('public')->put($img_store_path . $imageName, base64_decode($image));
+                $img_url = Storage::url($img_store_path . $imageName);
 
+                $img_url=str_replace('/storage','',$img_url);
 
-            Storage::disk('public')->put($img_store_path.$imageName, base64_decode($image));
+                $formField['img'] = $img_url;
 
-            $img_url=Storage::url($img_store_path.$imageName);
+                $category->create($formField);
 
+                return response()->json(['result' => 'success', 'path' => $formField['img'],'category'=>$category]);
+            }
 
-            $formField['img'] = $img_url;
             $category->create($formField);
+            return response()->json(['result' => 'success','category'=>$category]);
 
-            return response()->json(['result' => 'success','path'=>$formField['img']]);
+
         } catch (\Exception $e) {
 
             return
@@ -116,9 +126,31 @@ class CategoryController extends Controller
         }
 
 
+    }
+    public function destroy(Request $request)
+    {
+        try{
+            // dd($request->input('id'));
+            $category = Category::find($request->input('id'));
+            if(!$category){
+                return response()->json(['error'=>'server','message'=>'record not found']);
 
+            }
+            $name=$category->name;
 
+            $img_store_path = $this->IMG_FILE_PATH;
+            // 移除圖檔
+            if (FacadesFile::exists(public_path('storage'  . $category->img))) {
+                FacadesFile::delete(public_path('storage' . $category->img));
+            }
 
-        // return redirect(route('listings.index'))->with('message','成功新增一筆資料');
+            $category->delete();
+
+            return response()->json(['error'=>null,'message'=>'record deleted','name'=>$name]);
+
+        }catch(\Exception $e){
+            return response()->json(['error'=>$e]);
+
+        }
     }
 }
