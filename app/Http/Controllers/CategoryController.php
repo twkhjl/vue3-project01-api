@@ -87,8 +87,7 @@ class CategoryController extends Controller
             $formField = $request->only($fillable);
 
 
-            // 處理上傳檔案
-
+            // handle base64 image
             // https://laracasts.com/discuss/channels/laravel/laravel-file-storage-how-to-store-decoded-base64-image
             $image_64 = $request->input('img');
             $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
@@ -97,12 +96,19 @@ class CategoryController extends Controller
             $image = str_replace(' ', '+', $image);
             $imageName = Str::random(10) . '.' . $extension;
 
-            Storage::disk('public')->put($imageName, base64_decode($image));
+            // image ready to be stored
+            $img_store_path='/imgs/categories/';
 
-            // $formField['img'] = $request->file('img')->store('imgs', 'public/imgs/categories/');
-            // $category->create($formField);
 
-            return response()->json(['result' => 'success','path'=>Storage::url($imageName)]);
+            Storage::disk('public')->put($img_store_path.$imageName, base64_decode($image));
+
+            $img_url=Storage::url($img_store_path.$imageName);
+
+
+            $formField['img'] = $img_url;
+            $category->create($formField);
+
+            return response()->json(['result' => 'success','path'=>$formField['img']]);
         } catch (\Exception $e) {
 
             return

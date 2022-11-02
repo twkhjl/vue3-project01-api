@@ -15,4 +15,15 @@ class Category extends Model
         return $this->hasMany('App\Models\Product');
     }
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'description',
+        'img',
+    ];
+
 }
