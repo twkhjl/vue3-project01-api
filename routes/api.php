@@ -49,6 +49,7 @@ Route::group([
     Route::get('all', [CategoryController::class,'all']);
     Route::get('show/{id}', [CategoryController::class,'show']);
     Route::post('store', [CategoryController::class,'store']);
+    Route::post('update', [CategoryController::class,'update']);
     Route::post('destroy', [CategoryController::class,'destroy']);
 });
 
