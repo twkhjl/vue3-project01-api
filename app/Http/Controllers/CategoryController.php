@@ -143,7 +143,6 @@ class CategoryController extends Controller
     }
     public function update(Request $request)
     {
-        return response()->json($request);
 
 
         try {
@@ -153,7 +152,8 @@ class CategoryController extends Controller
             }
             $validator = Validator::make($request->all(), [
 
-                'name' => ['required', 'unique:categories'],
+                // 'name' => ['required', 'unique:categories'],
+                'name' => ['required', `unique:categories,name,$request->input('id')`],
                 'description' => ['required'],
                 // 'img'=>['mimes:jpg,jpeg,png','max:1024'],
                 // 'img'=>['image','max:1024','dimensions:max_width=300,max_height=218'],
@@ -163,7 +163,6 @@ class CategoryController extends Controller
                 // 'img' => [new base64_image, new base64_max(0.5)],
 
 
-                // 'description' => ['required'],
 
             ], [
                 // 自定錯誤訊息
@@ -187,35 +186,35 @@ class CategoryController extends Controller
 
 
             // 取得表單輸入值
-            $category = Category::find($request()->input('id'));
-return response()->json($category);
+            $category = Category::find($request->input('id'));
             $fillable = collect($category->getFillable())->toArray();
             $formField = $request->only($fillable);
 
             if ($request->input('img')) {
-                // handle base64 image
+
+                //remove existing img first
+                if (FacadesFile::exists(public_path('storage/'  . $category->img))) {
+                    FacadesFile::delete(public_path('storage/' . $category->img));
+                }
+
+
                 // https://laracasts.com/discuss/channels/laravel/laravel-file-storage-how-to-store-decoded-base64-image
                 $image_64 = $request->input('img');
-                $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
-                $replace = substr($image_64, 0, strpos($image_64, ',') + 1);
-                $image = str_replace($replace, '', $image_64);
-                $image = str_replace(' ', '+', $image);
-                $imageName = Str::random(10) . '.' . $extension;
 
-                // image ready to be stored
-                $img_store_path = $this->IMG_FILE_PATH;
-                $img_store_path = $img_store_path . $imageName;
+                $img_data = FileHelper::get_base64_file_data($image_64);
+                $img_name = FileHelper::get_random_file_name($img_data['extension'], 12);
 
-                Storage::disk('public')->put($img_store_path, base64_decode($image));
-                $img_url = Storage::url($img_store_path);
+                $img_store_path = $this->IMG_FILE_PATH . $img_name;
+                $img_url = FileHelper::store_base64_data($img_store_path, $img_data['data']);
+
+                $img_url = str_replace("/storage" . "/", '', $img_url);
 
                 $formField['img'] = $img_url;
-                $category->create($formField);
-
+                $category->update($formField);
                 return response()->json(['error' => 'null', 'path' => $formField['img'], 'data' => $category]);
             }
 
-            $category->create($formField);
+            $category->update($formField);
             return response()->json(['error' => 'null', 'data' => $category]);
         } catch (\Exception $e) {
 

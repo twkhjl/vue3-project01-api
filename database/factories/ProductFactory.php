@@ -20,8 +20,8 @@ class ProductFactory extends Factory
             'name' => $this->faker->name(),
             'category_id'=>$this->faker->randomElement($cat_ids),
             'description'=>$this->faker->text(),
-            'price'=>$this->faker->numberBetween(500,1200),
-            'qty'=>$this->faker->numberBetween(1,20),
+            'price'=>$this->faker->numberBetween(1500,6400),
+            'units_in_stock'=>$this->faker->numberBetween(1,20),
         ];
     }
 }

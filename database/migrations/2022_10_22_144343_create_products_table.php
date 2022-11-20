@@ -19,11 +19,10 @@ class CreateProductsTable extends Migration
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->string('name');
             $table->text('description');
-            $table->json('imgs')->nullable();
             $table->integer('price');
-            $table->integer('qty');
-
-
+            $table->integer('units_in_stock');
+            $table->integer('units_on_order')->default(0);
+            $table->integer('discontinued')->default(0);
 
         });
     }

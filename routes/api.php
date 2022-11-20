@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TttController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
-
-
+use App\Http\Controllers\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,5 +50,13 @@ Route::group([
     Route::post('store', [CategoryController::class,'store']);
     Route::post('update', [CategoryController::class,'update']);
     Route::post('destroy', [CategoryController::class,'destroy']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'product'
+], function ($router) {
+    Route::get('all', [ProductController::class,'all']);
+    Route::get('paginate', [ProductController::class,'paginate']);
 });
 
