@@ -25,7 +25,19 @@ class ProductController extends Controller
     }
     public function paginate()
     {
-        $products = Product::paginate(20);
+        $perPage = 20;
+        $columns = ['*'];
+        $pageName = 'page';
+        $pageNumber = 1;
+
+        if (request()->perPage) {
+            $perPage = request()->perPage;
+        }
+        if (request()->$pageName) {
+            $pageNumber = request()->pageNumber;
+        }
+
+        $products = Product::paginate($perPage,$columns,$pageName,$pageNumber);
 
         return response()->json([
             $products
